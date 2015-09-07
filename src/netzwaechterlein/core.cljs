@@ -1,6 +1,5 @@
 (ns netzwaechterlein.core
   (:require [cljs.core.async :as async :refer [<!]]
-            [cljsjs.moment]
             [datascript :as d])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
@@ -12,10 +11,14 @@
 
 (def nw-ch (async/chan))
 
+(def conn (d/create-conn))
+
 (defn send-watch [error m]
-  (if-not error
-    (async/put! nw-ch (merge m {:status :ok}))
-    (async/put! nw-ch (merge m {:status :error :messge (str error)}))))
+  (let [timestamp {:timestamp (js/Date.)}
+        merge-watch (partial merge m timestamp)]
+    (if-not error
+      (async/put! nw-ch (merge-watch {:status :ok}))
+      (async/put! nw-ch (merge-watch {:status :error :message (str error)})))))
 
 (defn ping-host [address]
   (let [session (.createSession ping)]
@@ -38,7 +41,7 @@
 
 (go-loop []
   (let [msg (<! nw-ch)]
-    (println msg)
+    (d/transact! conn [msg])
     (recur)))
 
 (defonce timer

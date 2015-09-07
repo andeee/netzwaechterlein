@@ -8,3 +8,7 @@ pom.xml
 .lein-deps-sum
 .lein-repl-history
 .lein-plugins/
+.nrepl-port
+.cljs_node_repl/
+*~
+node_modules/

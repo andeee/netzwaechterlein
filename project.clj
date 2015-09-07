@@ -6,13 +6,13 @@
                   :exclusion [org.clojure/data.json]]
                  [org.clojure/data.json "0.2.6" :classifier "aot"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [datascript "0.11.6"]
+                 [datascript "0.12.0"]
                  [cljsjs/moment "2.9.0-3"]]
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
   :plugins [[lein-npm "0.6.1"]]
   :npm {:dependencies [[source-map-support "0.3.2"]
                        [every-moment "0.0.1"]
-                       [net-ping "1.1.14"]]}
+                       [net-ping "1.1.11"]]}
   :source-paths ["src" "target/classes"]
   :clean-targets ["out" "release"]
   :target-path "target"

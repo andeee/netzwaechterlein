@@ -1,0 +1,3 @@
+{:require [netzwaechterlein.client]
+ :init-fns [netzwaechterlein.client/main]
+ :compiler-options {:target nil}}

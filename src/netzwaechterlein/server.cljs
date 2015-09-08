@@ -1,4 +1,4 @@
-(ns netzwaechterlein.core
+(ns netzwaechterlein.server
   (:require [cljs.core.async :as async :refer [<!]]
             [datascript :as d])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
@@ -6,6 +6,7 @@
 (def every (js/require "every-moment"))
 (def ping (js/require "net-ping"))
 (def dns (js/require "dns"))
+(def http (js/require "http"))
 
 (enable-console-print!)
 
@@ -44,5 +45,15 @@
     (d/transact! conn [msg])
     (recur)))
 
-(defonce timer
-  (every 20 (name :second) netwatch))
+(defn dump-db [req res]
+  (doto res
+    (.writeHead 200 #js {"Content-Type" "application/edn"})
+    (.write (pr-str @conn))
+    (.end)))
+
+(defn main [& _]
+  (let [timer (every 20 (name :second) netwatch)
+        server (.createServer http dump-db)]
+    (.listen server 8080)))
+
+(set! *main-cli-fn* main)

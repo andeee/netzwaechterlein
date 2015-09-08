@@ -1,0 +1,2 @@
+{:require [netzwaechterlein.server]
+ :compiler-options {:target :nodejs}}

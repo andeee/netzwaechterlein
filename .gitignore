@@ -12,3 +12,4 @@ pom.xml
 .cljs_node_repl/
 *~
 node_modules/
+.nrepl-history

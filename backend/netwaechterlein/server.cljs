@@ -1,12 +1,15 @@
 (ns netzwaechterlein.server
   (:require [cljs.core.async :as async :refer [<!]]
-            [datascript :as d])
+            [datascript :as d]
+            [figwheel.client :as fw])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
-(def every (js/require "every-moment"))
-(def ping (js/require "net-ping"))
-(def dns (js/require "dns"))
-(def http (js/require "http"))
+(defonce every (js/require "every-moment"))
+(defonce ping (js/require "net-ping"))
+(defonce dns (js/require "dns"))
+(defonce express (js/require "express"))
+(defonce serve-static (js/require "serve-static"))
+(defonce http (js/require "http"))
 
 (enable-console-print!)
 
@@ -46,14 +49,19 @@
     (recur)))
 
 (defn dump-db [req res]
-  (doto res
-    (.writeHead 200 #js {"Content-Type" "application/edn"})
-    (.write (pr-str @conn))
-    (.end)))
+  (.send res (pr-str @conn)))
+
+(def app (express))
+
+(. app (get "/data" dump-db))
+
+(. app (use (serve-static "resources/public" #js {:index "index.html"})))
 
 (defn main [& _]
-  (let [timer (every 20 (name :second) netwatch)
-        server (.createServer http dump-db)]
-    (.listen server 8080)))
+  (let [timer (every 20 (name :second) netwatch)]
+    (doto (.createServer http #(app %1 %2))
+      (.listen 8080))))
 
 (set! *main-cli-fn* main)
+
+(fw/start { })

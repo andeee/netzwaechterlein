@@ -13,3 +13,6 @@ pom.xml
 *~
 node_modules/
 .nrepl-history
+resources/public/js
+figwheel_server.log
+.repl/

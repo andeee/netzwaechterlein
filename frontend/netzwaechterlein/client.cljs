@@ -38,9 +38,12 @@
 (def data-ch (ws-ch "ws://localhost:8081"))
 
 (go
-  (let [ws-data-ch (:ws-channel (<! data-ch))]
-    (reset! conn (:message (<! ws-data-ch)))
-    (render-page)
-    (loop []
-      (d/transact! conn [(:message (<! ws-data-ch))])
-      (recur))))
+  (let [{:keys [ws-channel error]} (<! data-ch)]
+    (when-not error
+      (reset! conn (:message (<! ws-channel)))
+      (render-page)
+      (loop []
+        (let [{:keys [message error]} (<! ws-channel)]
+          (when-not error
+            (d/transact! conn [message])
+            (recur)))))))

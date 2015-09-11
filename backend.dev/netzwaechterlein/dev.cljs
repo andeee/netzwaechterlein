@@ -3,7 +3,7 @@
             [netzwaechterlein.server]))
 
 (defn -main [& _]
-  (figwheel.client/start)
+  (figwheel.client/start {:id "backend.dev"})
   (netzwaechterlein.server/-main))
 
 (set! *main-cli-fn* -main)

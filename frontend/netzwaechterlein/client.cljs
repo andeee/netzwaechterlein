@@ -1,8 +1,11 @@
 (ns netzwaechterlein.client
-  (:require [rum]
-            [datascript :as d]
-            [goog.net.XhrIo]
-            [cljs.reader :refer [read-string]]))
+  (:require
+   [rum]
+   [datascript :as d]
+   [cljs.reader :refer [read-string]]
+   [chord.client :refer [ws-ch]]
+   [cljs.core.async :as async :refer [<!]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (enable-console-print!)
 
@@ -32,11 +35,12 @@
 (defn render-page []
   (rum/mount (body) (.-body js/document)))
 
-(defn get-data []
-  (.send goog.net.XhrIo "http://localhost:8080/data"
-         (fn [e]
-           (let [db (read-string (.getResponseText (.-target e)))]
-             (reset! conn db)
-             (render-page)))))
+(def data-ch (ws-ch "ws://localhost:8081"))
 
-(get-data)
+(go
+  (let [ws-data-ch (:ws-channel (<! data-ch))]
+    (reset! conn (:message (<! ws-data-ch)))
+    (render-page)
+    (loop []
+      (d/transact! conn [(:message (<! ws-data-ch))])
+      (recur))))

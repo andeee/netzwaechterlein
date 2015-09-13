@@ -11,31 +11,35 @@
 
 (defonce conn (d/create-conn))
 
-(defn get-latest-entry [type]
+(defn get-latest-entry [db type]
   (->> (d/q '[:find (max ?e) .
               :in $ ?type
               :where [?e :type ?type]]
-            @conn type)
-       (d/entity @conn)))
+            db type)
+       (d/entity db)))
 
-(rum/defc response < rum/static [type]
-  (let [entry (get-latest-entry type)]
-    [:div (str "last " (name type) " response: ")
-     [:div
-      (str
-       (:timestamp entry)
-       " - "
-       (name (:status entry)))]]))
+(rum/defc response < rum/static [entry]
+  [:div (str "last " (name (:type entry)) " response: ")
+   [:div
+    (str
+     (:timestamp entry)
+     " - "
+     (name (:status entry)))]])
 
-(rum/defc body < rum/static []
+(rum/defc body < rum/static [db]
   [:div
-   (response :dns)
-   (response :ping)])
+   (map #(-> % ((partial get-latest-entry db)) response) [:dns :ping])])
 
-(defn render-page []
-  (rum/mount (body) (.-body js/document)))
+(defn render-page
+  ([] (render-page @conn))
+  ([db] (rum/mount (body db) (.-body js/document))))
 
 (def data-ch (ws-ch "ws://localhost:8081"))
+
+(d/listen!
+ conn :render
+ (fn [tx-report]
+   (render-page (:db-after tx-report))))
 
 (go
   (let [{:keys [ws-channel error]} (<! data-ch)]

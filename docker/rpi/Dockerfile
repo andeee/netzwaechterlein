@@ -1,11 +1,7 @@
 FROM resin/rpi-node:0.10.36
 
 RUN set -x \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends python build-essential \
-    && npm install net-ping ws express serve-static \
-    && apt-get remove python build-essential \
-    && apt-get autoremove
+    && npm install --no-optional net-ping ws express serve-static
 
 COPY resources/public/index.html /resources/public/
 COPY resources/public/js/client.js /resources/public/js/

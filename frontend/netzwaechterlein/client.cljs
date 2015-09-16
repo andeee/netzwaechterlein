@@ -34,7 +34,7 @@
   ([] (render-page @conn))
   ([db] (rum/mount (body db) (.-body js/document))))
 
-(def data-ch (ws-ch "ws://localhost:8081"))
+(def data-ch (ws-ch (str "ws://" (.. js/window -location -hostname) ":8081")))
 
 (d/listen!
  conn :render

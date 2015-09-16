@@ -3,7 +3,6 @@
             [datascript :as d])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
-(defonce every (js/require "every-moment"))
 (defonce ping (js/require "net-ping"))
 (defonce dns (js/require "dns"))
 (defonce express (js/require "express"))
@@ -64,12 +63,20 @@
                (fn [e] (when e (async/close! nw-event))))
         (recur)))))
 
+(defn every [ms f]
+  (go-loop []
+    (<! (async/timeout ms))
+    (f)
+    (recur)))
+
 (def app (express))
 
 (. app (use (serve-static "resources/public" #js {:index "index.html"})))
 
+(def minute (* 60 1000))
+
 (defn -main [& _]
-  (let [timer (every 20 (name :second) netwatch)
+  (let [_ (every minute netwatch)
         server (.createServer http app)
         websocket-server (WebSocketServer. #js {:port 8081})]
     (.listen server 8080)

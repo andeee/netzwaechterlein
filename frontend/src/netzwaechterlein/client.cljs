@@ -1,7 +1,7 @@
 (ns netzwaechterlein.client
   (:require
-   [rum]
-   [datascript :as d]
+   [rum.core :as rum]
+   [datascript.core :as d]
    [cljs.reader :refer [read-string]]
    [chord.client :refer [ws-ch]]
    [cljs.core.async :as async :refer [<!]])

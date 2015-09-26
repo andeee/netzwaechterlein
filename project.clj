@@ -4,9 +4,9 @@
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.122"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [datascript "0.12.2"]
-                 [figwheel "0.3.9"]
-                 [rum "0.3.0"]
+                 [datascript "0.13.1"]
+                 [figwheel "0.4.0"]
+                 [rum "0.4.1"]
                  [jarohen/chord "0.6.0"]]
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
   :npm {:dependencies [[source-map-support "0.3.2"]
@@ -22,14 +22,14 @@
   :resource-paths ["resources"]
   :target-path "target"
   :plugins [[lein-npm "0.6.1"]
-            [lein-figwheel "0.3.9"]
+            [lein-figwheel "0.4.0"]
             [lein-cljsbuild "1.1.0"]]
 
   :figwheel {:open-file-command "emacsclient" :nrepl-port 7888}
 
   :cljsbuild {:builds
               [{:id "backend.dev"
-                :source-paths ["backend" "backend.dev"]
+                :source-paths ["backend/src" "backend/dev" "backend/test"]
                 :compiler
                 {:output-to "target/backend.dev/server.js"
                  :output-dir "target/backend.dev"
@@ -38,7 +38,7 @@
                  :warnings {:single-segment-namespace false}
                  :target :nodejs}}
                {:id "backend"
-                :source-paths ["backend"]
+                :source-paths ["backend/src"]
                 :compiler
                 {:output-to "target/backend/server.js"
                  :output-dir "target/backend"
@@ -48,7 +48,7 @@
                  :target :nodejs
                  :preamble ["preamble.js"]}}
                {:id "frontend.dev"
-                :source-paths ["frontend"]
+                :source-paths ["frontend/src"]
                 :compiler
                 {:asset-path "js/out"
                  :output-to "resources/public/js/client.js"
@@ -57,11 +57,12 @@
                  :warnings {:single-segment-namespace false}
                  :optimizations :none}}
                {:id "frontend"
-                :source-paths ["frontend"]
+                :source-paths ["frontend/src"]
                 :compiler
                 {:output-to "resources/public/js/client.js"
                  :main netzwaechterlein.client
                  :warnings {:single-segment-namespace false}
                  :optimizations :advanced}}]}
-
-  :profiles {:dev {:source-paths ["frontend" "backend"]}})
+  :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.1"]
+                                  [org.clojure/tools.nrepl "0.2.10"]]
+                   :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}})

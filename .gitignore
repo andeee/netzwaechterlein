@@ -17,3 +17,5 @@ resources/public/js
 figwheel_server.log
 .repl/
 *#
+.lein-failures
+netwatch.db

@@ -13,7 +13,8 @@
                        [net-ping "1.1.11"]
                        [express "4.13.3"]
                        [serve-static "1.10.0"]
-                       [ws "0.8.0"]]}
+                       [ws "0.8.0"]
+                       [sqlite3 "3.1.0"]]}
   :clean-targets ^{:protect false}
   ["resources/public/js/out"
    "resources/public/js/client.js"

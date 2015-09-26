@@ -1,7 +1,7 @@
 FROM node:0.12
 
 RUN set -x \
-    && npm install --no-optional net-ping ws express serve-static
+    && npm install --no-optional net-ping ws express serve-static sqlite3
 
 COPY resources/public/index.html /resources/public/
 COPY resources/public/js/client.js /resources/public/js/

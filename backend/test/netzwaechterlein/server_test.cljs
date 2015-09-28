@@ -1,21 +1,27 @@
 (ns ^:figwheel-always
-  test.netzwaechterlein.server-test
+  netzwaechterlein.server-test
   (:require [cljs.test :as t :refer-macros [deftest testing is async]]
             [cljs.core.async :as a :refer [<! >! put! chan mult]]
-            [netzwaechterlein.server :refer [add-sensor]])
+            [netzwaechterlein.server :refer [create-sensor ping-host]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(deftest add-sensor-test
-  (let [sensor-chan (chan)
-        pull-chan (chan)
+(deftest create-sensor-test
+  (let [pull-chan (chan)
         pull-mult (mult pull-chan)
-        handler (fn [result sensor-chan] (put! sensor-chan result))]
+        sensor-chan (create-sensor pull-mult #(put! %1 :sensor-result))]
     (async
      done
-     (add-sensor pull-mult sensor-chan (partial handler :sensor-result))
-     (go
-       (>! pull-chan :kick-off)
-       (is (= :sensor-result (<! sensor-chan)))
-       (done)))))
+     (go (>! pull-chan :kick-off)
+         (is (= :sensor-result (<! sensor-chan)))
+         (done)))))
 
-(t/run-tests)
+(testing "ping"
+  (deftest ping-ok
+    (let [sensor-chan (chan)]
+      (async
+       done
+       (go
+         (ping-host "64.233.166.105" sensor-chan)
+         (let [sensor-result (<! sensor-chan)]
+           (is (= {:type :ping :status :ok} sensor-result)))
+         (done))))))

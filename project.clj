@@ -7,7 +7,8 @@
                  [datascript "0.13.1"]
                  [figwheel "0.4.0"]
                  [rum "0.4.1"]
-                 [jarohen/chord "0.6.0"]]
+                 [jarohen/chord "0.6.0"]
+                 [doo "0.1.5-SNAPSHOT"]]
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
   :npm {:dependencies [[source-map-support "0.3.2"]
                        [net-ping "1.1.11"]
@@ -23,7 +24,8 @@
   :target-path "target"
   :plugins [[lein-npm "0.6.1"]
             [lein-figwheel "0.4.0"]
-            [lein-cljsbuild "1.1.0"]]
+            [lein-cljsbuild "1.1.0"]
+            [lein-doo "0.1.5-SNAPSHOT"]]
 
   :figwheel {:open-file-command "emacsclient" :nrepl-port 7888}
 
@@ -34,7 +36,16 @@
                 {:output-to "target/backend.dev/server.js"
                  :output-dir "target/backend.dev"
                  :optimizations :none
-                 :main netzwaechterlein.dev
+                 :main "netzwaechterlein.dev"
+                 :warnings {:single-segment-namespace false}
+                 :target :nodejs}}
+               {:id "backend.test"
+                :source-paths ["backend/src" "backend/test"]
+                :compiler
+                {:output-to "target/backend.test/server-test.js"
+                 :output-dir "target/backend.test"
+                 :optimizations :nonelein 
+                 :main "netzwaechterlein.runner"
                  :warnings {:single-segment-namespace false}
                  :target :nodejs}}
                {:id "backend"

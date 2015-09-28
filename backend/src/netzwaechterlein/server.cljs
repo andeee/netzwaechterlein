@@ -1,5 +1,5 @@
 (ns netzwaechterlein.server
-  (:require [cljs.core.async :as async :refer [<!]]
+  (:require [cljs.core.async :as async :refer [<! >!]]
             [datascript.core :as d])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
@@ -13,26 +13,24 @@
 
 (enable-console-print!)
 
-(def nw-ch (async/chan))
-
-(def nw-mult (async/mult nw-ch))
-
 (defonce conn (d/create-conn))
 
 (defn send-watch [error type sensor-chan]
   (let [timestamp {:timestamp (.getTime (js/Date.))}
         merge-watch (partial merge {:type type} timestamp)]
     (if-not error
-      (async/put! nw-ch (merge-watch {:status :ok}))
-      (async/put! nw-ch (merge-watch {:status :error :message (str error)})))))
+      (async/put! sensor-chan (merge-watch {:status :ok}))
+      (async/put! sensor-chan (merge-watch {:status :error :message (str error)})))))
 
-(defn add-sensor [pull-mult sensor-chan f]
+(defn create-sensor [pull-mult f]
   (let [pull-chan (async/chan)
-        _ (async/tap pull-mult pull-chan)]
+        _ (async/tap pull-mult pull-chan)
+        sensor-chan (async/chan)]
     (go-loop []
       (<! pull-chan)
       (f sensor-chan)
-      (recur))))
+      (recur))
+    sensor-chan))
 
 (defn ping-host [address sensor-chan]
   (let [session (.createSession ping)]
@@ -43,33 +41,29 @@
        (send-watch error :ping sensor-chan)
        (.close session)))))
 
-(defn dns-lookup [address sensor-chan]
+(defn dns-lookup [ address sensor-chan]
   (.resolve
    dns
    address
    (fn [error _ _] (send-watch error :dns sensor-chan))))
 
-(defn copy-nw-ch []
-  (let [nw-copy (async/chan)]
-    (async/tap nw-mult nw-copy)
-    nw-copy))
-
-(let [nw-event (copy-nw-ch)]
-  (go-loop []
-    (d/transact! conn [(<! nw-event)])
-    (recur)))
-
-(defn data->client [ws]
+(defn data->client [sensor-results-mult ws]
   (.send ws (pr-str @conn))
-  (let [nw-event (copy-nw-ch)]
+  (let [sensor-results (async/chan)
+        _ (async/tap sensor-results-mult sensor-results)]
     (go-loop []
-      (when-let [msg (<! nw-event)]
+      (when-let [msg (<! sensor-results)]
         (.send ws (pr-str msg)
-               (fn [e] (when e (async/close! nw-event))))
+               (fn [e] (when e (async/close! sensor-results))))
         (recur)))))
 
 (defn every [ms]
-  (async/timeout ms))
+  (let [pull-chan (async/chan)]
+    (go-loop []
+      (<! (async/timeout ms))
+      (>! pull-chan :kick-off)
+      (recur))
+    pull-chan))
 
 (def app (express))
 
@@ -82,11 +76,13 @@
         server (.createServer http app)
         websocket-server (WebSocketServer. #js {:port 8081})
         db (Database. "netwatch.db")
-        add (partial add-sensor pull-mult nw-ch)]
-    (add (partial ping-host "64.233.166.105"))
-    (add (partial dns-lookup "www.google.com"))
+        sensor (partial create-sensor pull-mult)
+        sensor-results-mult (async/mult
+                             (async/merge
+                              (sensor (partial ping-host "64.233.166.105"))
+                              (sensor (partial dns-lookup "www.google.com"))))]
     (.run db "CREATE TABLE IF NOT EXISTS netwatch (status text message text timestamp integer)")
     (.listen server 8080)
-    (. websocket-server (on "connection" data->client))))
+    (. websocket-server (on "connection" (partial data->client sensor-results-mult)))))
 
 (set! *main-cli-fn* -main)

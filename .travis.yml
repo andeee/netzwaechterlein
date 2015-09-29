@@ -5,5 +5,6 @@ jdk:
   - oraclejdk7
 node_js:
   - 0.10
+  - 0.12
 script: lein do clean, doo node backend.test once, cljsbuild once backend frontend
 sudo: false

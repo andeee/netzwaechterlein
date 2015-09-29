@@ -44,7 +44,7 @@
                 :compiler
                 {:output-to "target/backend.test/server-test.js"
                  :output-dir "target/backend.test"
-                 :optimizations :nonelein 
+                 :optimizations :none
                  :main "netzwaechterlein.runner"
                  :warnings {:single-segment-namespace false}
                  :target :nodejs}}

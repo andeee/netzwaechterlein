@@ -22,12 +22,12 @@
       (async/put! sensor-chan (merge-watch {:status :ok}))
       (async/put! sensor-chan (merge-watch {:status :error :message (str error)})))))
 
-(defn create-sensor [pull-mult f]
-  (let [pull-chan (async/chan)
-        _ (async/tap pull-mult pull-chan)
+(defn create-sensor [pull-sensor-mult f]
+  (let [pull-sensor-chan (async/chan)
+        _ (async/tap pull-sensor-mult pull-sensor-chan)
         sensor-chan (async/chan)]
     (go-loop []
-      (<! pull-chan)
+      (<! pull-sensor-chan)
       (f sensor-chan)
       (recur))
     sensor-chan))
@@ -47,14 +47,14 @@
    address
    (fn [error _ _] (send-watch error :dns sensor-chan))))
 
-(defn data->client [sensor-results-mult ws]
+(defn data->client [sensor-mult ws]
   (.send ws (pr-str @conn))
-  (let [sensor-results (async/chan)
-        _ (async/tap sensor-results-mult sensor-results)]
+  (let [sensor-chan (async/chan)
+        _ (async/tap sensor-mult sensor-chan)]
     (go-loop []
-      (when-let [msg (<! sensor-results)]
+      (when-let [msg (<! sensor-chan)]
         (.send ws (pr-str msg)
-               (fn [e] (when e (async/close! sensor-results))))
+               (fn [e] (when e (async/close! sensor-chan))))
         (recur)))))
 
 (defn every [ms]
@@ -72,17 +72,17 @@
 (def minute (* 60 1000))
 
 (defn -main [& _]
-  (let [pull-mult (async/mult (every minute))
+  (let [pull-sensor-mult (async/mult (every minute))
         server (.createServer http app)
         websocket-server (WebSocketServer. #js {:port 8081})
         db (Database. "netwatch.db")
-        sensor (partial create-sensor pull-mult)
-        sensor-results-mult (async/mult
-                             (async/merge
-                              (sensor (partial ping-host "64.233.166.105"))
-                              (sensor (partial dns-lookup "www.google.com"))))]
+        sensor (partial create-sensor pull-sensor-mult)
+        sensor-mult (async/mult
+                     (async/merge
+                      (sensor (partial ping-host "64.233.166.105"))
+                      (sensor (partial dns-lookup "www.google.com"))))]
     (.run db "CREATE TABLE IF NOT EXISTS netwatch (status text message text timestamp integer)")
     (.listen server 8080)
-    (. websocket-server (on "connection" (partial data->client sensor-results-mult)))))
+    (. websocket-server (on "connection" (partial data->client sensor-mult)))))
 
 (set! *main-cli-fn* -main)

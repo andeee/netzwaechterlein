@@ -1,0 +1,3 @@
+language: clojure
+script: lein do clean, doo node backend.test once, cljsbuild once backend frontend
+sudo: false

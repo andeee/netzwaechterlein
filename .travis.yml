@@ -1,3 +1,9 @@
-language: clojure
+language:
+  - node_js
+  - clojure
+jdk:
+  - oraclejdk7
+node_js:
+  - 0.10
 script: lein do clean, doo node backend.test once, cljsbuild once backend frontend
 sudo: false

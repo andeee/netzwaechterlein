@@ -47,8 +47,7 @@
                  :optimizations :none
                  :main "netzwaechterlein.runner"
                  :warnings {:single-segment-namespace false}
-                 :target :nodejs
-                 :hashbang false}}
+                 :target :nodejs}}
                {:id "backend"
                 :source-paths ["backend/src"]
                 :compiler

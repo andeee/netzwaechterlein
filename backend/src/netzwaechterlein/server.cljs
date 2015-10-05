@@ -41,7 +41,7 @@
        (send-watch error :ping sensor-chan)
        (.close session)))))
 
-(defn dns-lookup [ address sensor-chan]
+(defn dns-lookup [address sensor-chan]
   (.resolve
    dns
    address
@@ -79,8 +79,8 @@
         sensor (partial create-sensor pull-sensor-mult)
         sensor-mult (async/mult
                      (async/merge
-                      (sensor (partial ping-host "64.233.166.105"))
-                      (sensor (partial dns-lookup "www.google.com"))))]
+                      [(sensor (partial ping-host "64.233.166.105"))
+                       (sensor (partial dns-lookup "www.google.com"))]))]
     (.run db "CREATE TABLE IF NOT EXISTS netwatch (status text message text timestamp integer)")
     (.listen server 8080)
     (. websocket-server (on "connection" (partial data->client sensor-mult)))))

@@ -27,7 +27,10 @@
             [lein-cljsbuild "1.1.0"]
             [lein-doo "0.1.5"]]
 
-  :figwheel {:open-file-command "emacsclient" :nrepl-port 7888}
+  :figwheel {:open-file-command "emacsclient"
+             :nrepl-port 7888
+             :nrepl-middleware ["cider.nrepl/cider-middleware"
+                                "cemerick.piggieback/wrap-cljs-repl"]}
 
   :cljsbuild {:builds
               [{:id "backend.dev"
@@ -74,6 +77,6 @@
                  :main netzwaechterlein.client
                  :warnings {:single-segment-namespace false}
                  :optimizations :advanced}}]}
-  :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.1"]
-                                  [org.clojure/tools.nrepl "0.2.10"]]
-                   :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}}})
+  :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.1.5"]
+                                  [org.clojure/tools.nrepl "0.2.10"]
+                                  [cider/cider-nrepl "0.10.0-SNAPSHOT"]]}})

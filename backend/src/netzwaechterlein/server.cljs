@@ -75,18 +75,25 @@
 (defn init-db [db]
   (.run db "CREATE TABLE IF NOT EXISTS netwatch (status text message text timestamp integer)"))
 
-(defn -main [& _]
-  (let [pull-sensor-mult (async/mult (every minute))
-        server (.createServer http app)
-        websocket-server (WebSocketServer. #js {:port 8081})
-        db (Database. "netwatch.db")
+(defn setup-netwatch [{:keys [pull-chan sensor-fns publish-fns]}]
+  (let [pull-sensor-mult (async/mult pull-chan)
         sensor (partial create-sensor pull-sensor-mult)
-        sensor-mult (async/mult
-                     (async/merge
-                      [(sensor (partial ping-host "64.233.166.105"))
-                       (sensor (partial dns-lookup "www.google.com"))]))]
-    (init-db db)
-    (.listen server 8080)
-    (. websocket-server (on "connection" (partial data->client sensor-mult)))))
+        sensor-mult (async/mult (async/merge (map sensor sensor-fns)))]
+    (doseq [publish-fn publish-fns]
+      (publish-fn sensor-mult))))
+
+(defn publish-websocket [ws-server sensor-mult]
+  (. ws-server (on "connection" (partial data->client sensor-mult))))
+
+(defn -main [& _]
+  (let [server (.createServer http app)
+        ws-server (WebSocketServer. #js {:port 8081})
+        db (init-db (Database. "netwatch.db"))]
+    (setup-netwatch
+     {:pull-chan (every minute)
+      :sensors-fns [(partial ping-host "64.233.166.105")
+                    (partial dns-lookup "www.google.com")]
+      :publish-fns [(partial publish-websocket ws-server)]})
+    (.listen server 8080)))
 
 (set! *main-cli-fn* -main)

@@ -1,12 +1,13 @@
 (ns netzwaechterlein.server-test
-  (:require [cljs.test :as t :refer-macros [deftest testing is async]]
+  (:require [cljs.test :as t :refer-macros [deftest testing is async use-fixtures]]
             [cljs.core.async :as a :refer [<! >! put! chan mult]]
-            [netzwaechterlein.server :refer [create-sensor ping-host dns-lookup Database init-db]])
+            [netzwaechterlein.server :refer [create-sensor ping-host dns-lookup setup-netwatch publish-websocket WebSocketServer]]
+            [datascript.core :as d]
+            [cljs.reader :refer [read-string]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(defn test-db []
-  (doto (new Database ":memory:")
-    (init-db)))
+(defonce WebSocket (js/require "ws"))
+(defonce ws-server (WebSocketServer. #js {:port 8082}))
 
 (deftest create-sensor-test
   (let [sensor-pull-chan (chan)
@@ -51,3 +52,22 @@
   (test-sensor dns-lookup
                "www.www.www"
                (not-ok :dns "Error: queryA ENOTFOUND")))
+
+(deftest publish-websocket-test
+  (let [pull-chan (chan)
+        ws-chan (chan)]
+    (setup-netwatch
+     {:pull-chan pull-chan
+      :sensor-fns [#(put! %1 :sensor-result)]
+      :publish-fns [(partial publish-websocket ws-server)]})
+    (async done
+      (go
+        (let [ws (WebSocket. "ws://localhost:8082")]
+          (>! pull-chan :kick-off)
+          (. ws (on "message" (fn [data flags]
+                                (put! ws-chan (read-string data)))))
+          (is (= (d/empty-db) (<! ws-chan)))
+          (is (= :sensor-result (<! ws-chan)))
+          (done))))))
+
+(use-fixtures :once {:after #(.close ws-server)})

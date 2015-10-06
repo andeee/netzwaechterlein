@@ -1,7 +1,7 @@
 netzwaechterlein
 ================
 
-A simple approach of building a netzwath service in pure CLJS
+A simple approach of building a netwatch service in pure CLJS
 
 ## Continuous Integration
 

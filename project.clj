@@ -44,11 +44,12 @@
                  :target :nodejs}}
                {:id "backend.test"
                 :source-paths ["backend/src" "backend/test"]
+                :figwheel false
                 :compiler
                 {:output-to "target/backend.test/server-test.js"
                  :output-dir "target/backend.test"
                  :optimizations :none
-                 :main "netzwaechterlein.runner"
+                 :main "netzwaechterlein.doo.runner"
                  :warnings {:single-segment-namespace false}
                  :target :nodejs}}
                {:id "backend"
@@ -77,6 +78,6 @@
                  :main netzwaechterlein.client
                  :warnings {:single-segment-namespace false}
                  :optimizations :advanced}}]}
-  :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.1.5"]
+  :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.1"]
                                   [org.clojure/tools.nrepl "0.2.10"]
                                   [cider/cider-nrepl "0.10.0-SNAPSHOT"]]}})

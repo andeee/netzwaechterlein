@@ -1,6 +1,7 @@
-(ns netzwaechterlein.server
+(ns ^:figwheel-always netzwaechterlein.server
   (:require [cljs.core.async :as async :refer [<! >!]]
-            [datascript.core :as d])
+            [datascript.core :as d]
+            [cljs.nodejs :as nodejs])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (defonce ping (js/require "net-ping"))
@@ -11,7 +12,7 @@
 (defonce http (js/require "http"))
 (defonce Database (. (js/require "sqlite3") -Database))
 
-(enable-console-print!)
+(nodejs/enable-util-print!)
 
 (defonce conn (d/create-conn))
 
@@ -71,6 +72,9 @@
 
 (def minute (* 60 1000))
 
+(defn init-db [db]
+  (.run db "CREATE TABLE IF NOT EXISTS netwatch (status text message text timestamp integer)"))
+
 (defn -main [& _]
   (let [pull-sensor-mult (async/mult (every minute))
         server (.createServer http app)
@@ -81,7 +85,7 @@
                      (async/merge
                       [(sensor (partial ping-host "64.233.166.105"))
                        (sensor (partial dns-lookup "www.google.com"))]))]
-    (.run db "CREATE TABLE IF NOT EXISTS netwatch (status text message text timestamp integer)")
+    (init-db db)
     (.listen server 8080)
     (. websocket-server (on "connection" (partial data->client sensor-mult)))))
 

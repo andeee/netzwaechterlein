@@ -1,9 +1,12 @@
-(ns ^:figwheel-always
-  netzwaechterlein.server-test
+(ns netzwaechterlein.server-test
   (:require [cljs.test :as t :refer-macros [deftest testing is async]]
             [cljs.core.async :as a :refer [<! >! put! chan mult]]
-            [netzwaechterlein.server :refer [create-sensor ping-host dns-lookup]])
+            [netzwaechterlein.server :refer [create-sensor ping-host dns-lookup Database init-db]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
+
+(defn test-db []
+  (doto (new Database ":memory:")
+    (init-db)))
 
 (deftest create-sensor-test
   (let [sensor-pull-chan (chan)

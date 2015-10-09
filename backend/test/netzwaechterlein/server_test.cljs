@@ -1,11 +1,10 @@
 (ns netzwaechterlein.server-test
   (:require [cljs.test :as t :refer-macros [deftest testing is async use-fixtures]]
             [cljs.core.async :as a :refer [<! >! put! chan mult alts! timeout close! pipe]]
-            [netzwaechterlein.server :refer [create-sensor ping-host dns-lookup setup-netwatch publish-db Database init-db sql->clj]]
+            [netzwaechterlein.server :refer [every create-sensor ping-host dns-lookup setup-netwatch publish-db Database init-db sql->clj]]
             [datascript.core :as d]
             [cljs.reader :refer [read-string]])
   (:require-macros [cljs.core.async.macros :refer [go]]))
-
 
 (deftest create-sensor-test
   (let [sensor-pull-chan (chan)
@@ -52,7 +51,7 @@
                (not-ok :dns "Error: queryA ENOTFOUND")))
 
 (deftest test-setup-netwatch
-  (let [pull-chan (chan)
+  (let [pull-chan (every 100)
         result-chan (chan)
         result (atom nil)]
     (setup-netwatch
@@ -61,10 +60,9 @@
       :publish-fns [#(go (pipe %1 result-chan))]})
     (async done
       (go
-        (>! pull-chan :kick-off)
-        (is (= :sensor-result (first (alts! [result-chan (timeout 100)]))))
-        (>! pull-chan :kick-off)
-        (is (= :sensor-result (first (alts! [result-chan (timeout 100)]))))
+        (is (= :sensor-result (first (alts! [result-chan (timeout 200)]))))
+        (is (= :sensor-result (first (alts! [result-chan (timeout 200)]))))
+        (is (= :sensor-result (first (alts! [result-chan (timeout 200)]))))
         (done)))))
 
 (deftest test-publish-db
@@ -83,4 +81,13 @@
                   (println err)
                   (put! db-result-chan row))))
         (is (= test-sensor (first (alts! [db-result-chan (timeout 100)]))))
+        (done)))))
+
+(deftest test-every
+  (let [pull-chan (every 100)]
+    (async done
+      (go
+        (is (= :kick-off (<! pull-chan)))
+        (is (= :kick-off (<! pull-chan)))
+        (is (= :kick-off (<! pull-chan)))
         (done)))))

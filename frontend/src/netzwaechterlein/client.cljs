@@ -19,12 +19,13 @@
        (d/entity db)))
 
 (rum/defc response < rum/static [entry]
-  [:div (str "last " (name (:type entry)) " response: ")
-   [:div
-    (str
-     (:timestamp entry)
-     " - "
-     (name (:status entry)))]])
+  (when entry
+    [:div (str "last " (name (:type entry)) " response: ")
+     [:div
+      (str
+       (:timestamp entry)
+       " - "
+       (name (:status entry)))]]))
 
 (rum/defc body < rum/static [db]
   [:div

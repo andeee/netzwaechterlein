@@ -33,6 +33,11 @@
       (recur))
     sensor-chan))
 
+(defn create-publisher [f sensor-mult]
+  (let [sensor-chan (async/chan)
+        _ (async/tap sensor-mult sensor-chan)]
+    (f sensor-chan)))
+
 (defn ping-host [address sensor-chan]
   (let [session (.createSession ping)]
     (.pingHost
@@ -48,15 +53,13 @@
    address
    (fn [error _ _] (send-watch error :dns sensor-chan))))
 
-(defn data->client [sensor-mult ws]
+(defn data->client [sensor-chan ws]
   (.send ws (pr-str @conn))
-  (let [sensor-chan (async/chan)
-        _ (async/tap sensor-mult sensor-chan)]
-    (go-loop []
-      (when-let [msg (<! sensor-chan)]
-        (.send ws (pr-str msg)
-               (fn [e] (when e (async/close! sensor-chan))))
-        (recur)))))
+  (go-loop []
+    (when-let [msg (<! sensor-chan)]
+      (.send ws (pr-str msg)
+             (fn [e] (when e (async/close! sensor-chan))))
+      (recur))))
 
 (defn every [ms]
   (let [pull-chan (async/chan)]
@@ -73,22 +76,40 @@
 (def minute (* 60 1000))
 
 (defn init-db [db]
-  (.run db "CREATE TABLE IF NOT EXISTS netwatch (status text message text timestamp integer)"))
+  (.run db "CREATE TABLE IF NOT EXISTS netwatch (type text, status text, message text, timestamp integer)"))
 
 (defn setup-netwatch [{:keys [pull-chan sensor-fns publish-fns]}]
   (let [pull-sensor-mult (async/mult pull-chan)
         sensor (partial create-sensor pull-sensor-mult)
         sensor-mult (async/mult (async/merge (map sensor sensor-fns)))]
     (doseq [publish-fn publish-fns]
-      (publish-fn sensor-mult))))
+      (create-publisher publish-fn sensor-mult))))
 
-(defn publish-websocket [ws-server sensor-mult]
-  (. ws-server (on "connection" (partial data->client sensor-mult))))
+(defn publish-websocket [ws-server sensor-chan]
+  (. ws-server (on "connection" (partial data->client sensor-chan))))
+
+(defn publish-db [db sensor-chan]
+  (.serialize
+   db
+   #(do
+      (init-db db)
+      (go-loop []
+        (when-let [{:keys [type status message timestamp]} (<! sensor-chan)]
+          (.run db
+                "INSERT INTO netwatch (type, status, message, timestamp) VALUES (?, ?, ?, ?)"
+                (name type), (name status), message, timestamp)
+          (recur))))))
+
+(def sql->clj
+  (map (fn [sensor]
+         (-> (js->clj sensor :keywordize-keys true)
+             (assoc :type (keyword (.-type sensor)))
+             (assoc :status (keyword (.-status sensor)))))))
 
 (defn -main [& _]
   (let [server (.createServer http app)
         ws-server (WebSocketServer. #js {:port 8081})
-        db (init-db (Database. "netwatch.db"))]
+        db (Database. "netwatch.db")]
     (setup-netwatch
      {:pull-chan (every minute)
       :sensors-fns [(partial ping-host "64.233.166.105")

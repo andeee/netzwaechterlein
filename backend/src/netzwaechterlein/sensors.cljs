@@ -1,5 +1,5 @@
 (ns netzwaechterlein.sensors
-  (:require [cljs.core.async :as async]))
+  (:require [cljs.core.async :refer [put!]]))
 
 (defonce ping (js/require "net-ping"))
 (defonce dns (js/require "dns"))
@@ -8,8 +8,8 @@
   (let [timestamp {:timestamp (.getTime (js/Date.))}
         merge-watch (partial merge {:type type} timestamp)]
     (if-not error
-      (async/put! sensor-chan (merge-watch {:status :ok}))
-      (async/put! sensor-chan (merge-watch {:status :error :message (str error)})))))
+      (put! sensor-chan (merge-watch {:status :ok}))
+      (put! sensor-chan (merge-watch {:status :error :message (str error)})))))
 
 (defn ping-host [address sensor-chan]
   (let [session (.createSession ping)]

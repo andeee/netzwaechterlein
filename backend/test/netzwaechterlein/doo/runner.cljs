@@ -1,5 +1,9 @@
 (ns netzwaechterlein.doo.runner
   (:require [doo.runner :refer-macros [doo-tests]]
-            [netzwaechterlein.server-test]))
+            [netzwaechterlein.core-test]
+            [netzwaechterlein.db-test]
+            [netzwaechterlein.sensors-test]))
 
-(doo-tests 'netzwaechterlein.server-test)
+(doo-tests 'netzwaechterlein.core-test
+           'netzwaechterlein.db-test
+           'netzwaechterlein.sensors-test)

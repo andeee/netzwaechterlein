@@ -30,6 +30,7 @@
   :figwheel {:open-file-command "emacsclient"
              :nrepl-port 7888
              :nrepl-middleware ["cider.nrepl/cider-middleware"
+                                "refactor-nrepl.middleware/wrap-refactor"
                                 "cemerick.piggieback/wrap-cljs-repl"]}
 
   :cljsbuild {:builds
@@ -50,7 +51,6 @@
                  :output-dir "target/backend.test"
                  :optimizations :none
                  :main "netzwaechterlein.doo.runner"
-                 :warnings {:single-segment-namespace false}
                  :target :nodejs}}
                {:id "backend"
                 :source-paths ["backend/src"]
@@ -59,7 +59,6 @@
                  :output-dir "target/backend"
                  :optimizations :simple
                  :main netzwaechterlein.server
-                 :warnings {:single-segment-namespace false}
                  :target :nodejs
                  :preamble ["preamble.js"]}}
                {:id "frontend.dev"
@@ -69,15 +68,14 @@
                  :output-to "resources/public/js/client.js"
                  :output-dir "resources/public/js/out"
                  :main netzwaechterlein.client
-                 :warnings {:single-segment-namespace false}
                  :optimizations :none}}
                {:id "frontend"
                 :source-paths ["frontend/src"]
                 :compiler
                 {:output-to "resources/public/js/client.js"
                  :main netzwaechterlein.client
-                 :warnings {:single-segment-namespace false}
                  :optimizations :advanced}}]}
   :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.1"]
                                   [org.clojure/tools.nrepl "0.2.10"]
-                                  [cider/cider-nrepl "0.10.0-SNAPSHOT"]]}})
+                                  [cider/cider-nrepl "0.10.0-SNAPSHOT"]
+                                  [refactor-nrepl "2.0.0-SNAPSHOT"]]}})

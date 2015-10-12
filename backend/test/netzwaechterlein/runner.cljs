@@ -1,6 +1,10 @@
 (ns ^:figwheel-always
   netzwaechterlein.runner
   (:require [cljs.test :refer-macros [run-tests]]
-            [netzwaechterlein.server-test]))
+            [netzwaechterlein.core-test]
+            [netzwaechterlein.db-test]
+            [netzwaechterlein.sensors-test]))
 
-(run-tests 'netzwaechterlein.server-test)
+(run-tests 'netzwaechterlein.core-test
+           'netzwaechterlein.db-test
+           'netzwaechterlein.sensors-test)

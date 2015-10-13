@@ -14,7 +14,7 @@
         result-chan (chan)
         db-result-chan (chan 1 (comp (map first) sql->clj))
         db (Database. ":memory:")
-        test-sensor {:type :hello :status :ok :timestamp (.getTime (js/Date.)) :message nil}]
+        test-sensor {:type :hello :status :ok :timestamp (.getTime (js/Date.))}]
     (setup-netwatch
      {:pull-chan pull-chan
       :sensor-fns [#(put! %1 test-sensor)]

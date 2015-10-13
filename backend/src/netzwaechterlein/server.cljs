@@ -3,7 +3,8 @@
             [netzwaechterlein.sensors :refer [ping-host dns-lookup]]
             [netzwaechterlein.core :refer [every setup-netwatch]]
             [netzwaechterlein.websocket :refer [publish-websocket]]
-            [netzwaechterlein.db :refer [publish-db]]))
+            [netzwaechterlein.db :refer [publish-db]]
+            [cljs.core.async :refer [put!]]))
 
 (defonce express (js/require "express"))
 (defonce WebSocketServer (. (js/require "ws") -Server))
@@ -19,16 +20,20 @@
 
 (def minute (* 60 1000))
 
+(defn setup [pull-chan db ws-server]
+  (setup-netwatch
+   {:pull-chan pull-chan
+    :sensor-fns [(partial ping-host "64.233.166.105")
+                  (partial dns-lookup "www.google.com")]
+    :publish-fns [(partial publish-db db)
+                  (partial publish-websocket db ws-server)]}))
+
 (defn -main [& _]
   (let [server (.createServer http app)
         ws-server (WebSocketServer. #js {:port 8081})
-        db (Database. "netwatch.db")]
-    (setup-netwatch
-     {:pull-chan (every minute)
-      :sensors-fns [(partial ping-host "64.233.166.105")
-                    (partial dns-lookup "www.google.com")]
-      :publish-fns [(partial publish-websocket db ws-server)
-                    (partial publish-db db)]})
+        db (Database. "netwatch.db")
+        pull-chan (every minute)]
+    (setup pull-chan db ws-server)
     (.listen server 8080)))
 
 (set! *main-cli-fn* -main)

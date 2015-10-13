@@ -1,12 +1,18 @@
 (ns netzwaechterlein.db
-  (:require [cljs.core.async :refer [<! chan put!]])
-    (:require-macros [cljs.core.async.macros :refer [go-loop]]))
+  (:require [cljs.core.async :refer [<! chan put! close!]])
+  (:require-macros [cljs.core.async.macros :refer [go-loop]]))
+
+(defn dissoc-nil-vals [row]
+  (apply dissoc
+         row
+         (for [[k v] row :when (nil? v)] k)))
 
 (defn row->clj [row]
   (let [result-row (js->clj row :keywordize-keys true)]
     (-> result-row
         (assoc :type (keyword (:type result-row)))
-        (assoc :status (keyword (:status result-row))))))
+        (assoc :status (keyword (:status result-row)))
+        dissoc-nil-vals)))
 
 (def sql->clj (map row->clj))
 
@@ -15,15 +21,17 @@
     (.all db
           "SELECT * FROM netwatch"
           (fn [err rows]
-            (println err)
-            (put! dump-chan (map row->clj rows))))
+            (if err
+              (do (close! dump-chan) (println err))
+              (put! dump-chan (map row->clj rows)))))
     dump-chan))
 
 (defn init-db [db]
-  (.run db "CREATE TABLE IF NOT EXISTS netwatch (type text, status text, message text, timestamp integer)"))
+  (let [init-sql "CREATE TABLE IF NOT EXISTS netwatch (type text, status text, message text, timestamp integer)"]
+    (.serialize db #(.run db init-sql))))
 
 (defn publish-db [db sensor-chan]
-  (.serialize db #(init-db db))
+  (init-db db)
   (go-loop []
     (when-let [{:keys [type status message timestamp]} (<! sensor-chan)]
       (.run db

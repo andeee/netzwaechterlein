@@ -4,7 +4,8 @@
    [datascript.core :as d]
    [cljs.reader :refer [read-string]]
    [chord.client :refer [ws-ch]]
-   [cljs.core.async :as async :refer [<!]])
+   [cljs.core.async :as async :refer [<!]]
+   [cljsjs.moment])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (enable-console-print!)
@@ -21,9 +22,9 @@
 (rum/defc response < rum/static [entry]
   (when entry
     [:div (str "last " (name (:type entry)) " response: ")
-     [:div
+     [:div {:class (name (:status entry))}
       (str
-       (:timestamp entry)
+       (.calendar (js/moment (:timestamp entry)))
        " - "
        (name (:status entry)))]]))
 

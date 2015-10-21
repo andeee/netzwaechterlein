@@ -19,3 +19,4 @@ figwheel_server.log
 *#
 .lein-failures
 netwatch.db
+.DS_Store

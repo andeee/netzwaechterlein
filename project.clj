@@ -8,7 +8,8 @@
                  [figwheel "0.4.0"]
                  [rum "0.4.1"]
                  [jarohen/chord "0.6.0"]
-                 [doo "0.1.5"]]
+                 [doo "0.1.5"]
+                 [cljsjs/moment "2.10.6-0"]]
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
   :npm {:dependencies [[source-map-support "0.3.2"]
                        [net-ping "1.1.11"]
@@ -31,21 +32,21 @@
              :nrepl-port 7888
              :nrepl-middleware ["cider.nrepl/cider-middleware"
                                 "refactor-nrepl.middleware/wrap-refactor"
-                                "cemerick.piggieback/wrap-cljs-repl"]}
+                                "cemerick.piggieback/wrap-cljs-repl"]
+             :css-dirs ["resources/public/css"]}
 
   :cljsbuild {:builds
               [{:id "backend.dev"
                 :source-paths ["backend/src" "backend/dev" "backend/test"]
+                :figwheel true
                 :compiler
                 {:output-to "target/backend.dev/server.js"
                  :output-dir "target/backend.dev"
                  :optimizations :none
                  :main "netzwaechterlein.dev"
-                 :warnings {:single-segment-namespace false}
                  :target :nodejs}}
                {:id "backend.test"
                 :source-paths ["backend/src" "backend/test"]
-                :figwheel false
                 :compiler
                 {:output-to "target/backend.test/server-test.js"
                  :output-dir "target/backend.test"
@@ -58,22 +59,23 @@
                 {:output-to "target/backend/server.js"
                  :output-dir "target/backend"
                  :optimizations :simple
-                 :main netzwaechterlein.server
+                 :main "netzwaechterlein.server"
                  :target :nodejs
                  :preamble ["preamble.js"]}}
                {:id "frontend.dev"
                 :source-paths ["frontend/src"]
+                :figwheel true
                 :compiler
                 {:asset-path "js/out"
                  :output-to "resources/public/js/client.js"
                  :output-dir "resources/public/js/out"
-                 :main netzwaechterlein.client
+                 :main "netzwaechterlein.client"
                  :optimizations :none}}
                {:id "frontend"
                 :source-paths ["frontend/src"]
                 :compiler
                 {:output-to "resources/public/js/client.js"
-                 :main netzwaechterlein.client
+                 :main "netzwaechterlein.client"
                  :optimizations :advanced}}]}
   :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.1"]
                                   [org.clojure/tools.nrepl "0.2.10"]

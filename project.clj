@@ -4,9 +4,9 @@
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.122"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [datascript "0.13.1"]
-                 [figwheel "0.4.0"]
-                 [rum "0.4.1"]
+                 [datascript "0.13.3"]
+                 [figwheel "0.5.0-2"]
+                 [rum "0.6.0"]
                  [jarohen/chord "0.6.0"]
                  [doo "0.1.5"]
                  [cljsjs/moment "2.10.6-0"]]
@@ -24,8 +24,8 @@
   :resource-paths ["resources"]
   :target-path "target"
   :plugins [[lein-npm "0.6.1"]
-            [lein-figwheel "0.4.0"]
-            [lein-cljsbuild "1.1.0"]
+            [lein-figwheel "0.5.0-2"]
+            [lein-cljsbuild "1.1.1"]
             [lein-doo "0.1.5"]]
 
   :figwheel {:open-file-command "emacsclient"

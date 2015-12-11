@@ -12,6 +12,13 @@
 
 (defonce conn (d/create-conn))
 
+(defn minute [entry]
+  (-> (js/moment (:timestamp entry))
+      (.milliseconds 0)
+      (.seconds 0)
+      (.toDate)
+      (.getTime)))
+
 (defn get-latest-entry [db type]
   (->> (d/q '[:find (max ?e) .
               :in $ ?type
@@ -19,18 +26,28 @@
             db type)
        (d/entity db)))
 
-(rum/defc response < rum/static [entry]
-  (when entry
-    [:div (str "last " (name (:type entry)) " response: ")
-     [:div {:class (name (:status entry))}
-      (str
-       (.calendar (js/moment (:timestamp entry)))
-       " - "
-       (name (:status entry)))]]))
+(defn get-entries [db]
+  (->> (d/q '[:find ?e
+              :where [?e]] db)
+       (map (fn [[e]] (d/entity db e)))
+       (group-by minute)
+       (sort)
+       (reverse)))
+
+(rum/defc response < rum/static [[at entries]]
+  [:div
+   (.calendar (js/moment at))
+   [:ul
+    (for [entry entries]
+      [:li {:class (name (:status entry))}
+       [:span
+        (name (:type entry)) " response: "
+        (name (:status entry))]])]])
 
 (rum/defc body < rum/static [db]
   [:div
-   (map #(-> % ((partial get-latest-entry db)) response) [:dns :ping])])
+   [:h1 "In the last 10 minutes"]
+   (map response (take 10 (get-entries db)))])
 
 (defn render-page
   ([] (render-page @conn))

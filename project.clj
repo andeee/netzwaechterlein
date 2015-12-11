@@ -25,7 +25,7 @@
   :target-path "target"
   :plugins [[lein-npm "0.6.1"]
             [lein-figwheel "0.5.0-2"]
-            [lein-cljsbuild "1.1.1"]
+            [lein-cljsbuild "1.1.0"]
             [lein-doo "0.1.5"]]
 
   :figwheel {:open-file-command "emacsclient"
@@ -58,7 +58,7 @@
                 :compiler
                 {:output-to "target/backend/server.js"
                  :output-dir "target/backend"
-                 :optimizations :simple
+                 :optimizations :none
                  :main "netzwaechterlein.server"
                  :target :nodejs
                  :preamble ["preamble.js"]}}

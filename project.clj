@@ -58,7 +58,7 @@
                 :compiler
                 {:output-to "target/backend/server.js"
                  :output-dir "target/backend"
-                 :optimizations :none
+                 :optimizations :simple
                  :main "netzwaechterlein.server"
                  :target :nodejs
                  :preamble ["preamble.js"]}}
@@ -76,7 +76,7 @@
                 :compiler
                 {:output-to "resources/public/js/client.js"
                  :main "netzwaechterlein.client"
-                 :optimizations :advanced}}]}
+                 :optimizations :whitespace}}]}
   :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.1"]
                                   [org.clojure/tools.nrepl "0.2.10"]
                                   [cider/cider-nrepl "0.10.0-SNAPSHOT"]

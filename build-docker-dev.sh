@@ -1,3 +1,3 @@
 #!/bin/sh
-lein cljsbuild once backend frontend
-docker build -f docker/dev/Dockerfile -t andeee/netzwaechterlein:latest .
+lein do clean, cljsbuild once backend frontend
+docker build -f docker/dev/Dockerfile --no-cache=true -t andeee/netzwaechterlein:latest .

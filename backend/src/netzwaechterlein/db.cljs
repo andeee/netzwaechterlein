@@ -1,6 +1,5 @@
 (ns netzwaechterlein.db
-  (:require [cljs.core.async :refer [<! chan put! close!]]
-            [cljsjs.moment])
+  (:require [cljs.core.async :refer [<! chan put! close!]])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 
 (defn dissoc-nil-vals [row]
@@ -17,9 +16,11 @@
 
 (def sql->clj (map row->clj))
 
+(defn days [days] (* 1000 * 60 * 24 * days))
+
 (defn dump-db [db]
   (let [dump-chan (chan)
-        seven-days-ago (.valueOf (.subtract (js/moment) 7 "days"))]
+        seven-days-ago (- (.getTime (js/Date.)) (days 7))]
     (.all db
           "SELECT * FROM netwatch WHERE timestamp >= ?" seven-days-ago
           (fn [err rows]

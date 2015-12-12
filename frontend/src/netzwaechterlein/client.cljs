@@ -5,10 +5,17 @@
    [cljs.reader :refer [read-string]]
    [chord.client :refer [ws-ch]]
    [cljs.core.async :as async :refer [<!]]
-   [cljsjs.moment])
+   [cljsjs.moment]
+   [cljsjs.moment.locale.de])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (enable-console-print!)
+
+(defn get-locale []
+  (or (.. js/window -navigator -userLanguage)
+      (.. js/window -navigator -language)))
+
+(. js/moment (locale (get-locale)))
 
 (defonce conn (d/create-conn))
 
@@ -19,13 +26,6 @@
       (.toDate)
       (.getTime)))
 
-(defn get-latest-entry [db type]
-  (->> (d/q '[:find (max ?e) .
-              :in $ ?type
-              :where [?e :type ?type]]
-            db type)
-       (d/entity db)))
-
 (defn get-entries [db]
   (->> (d/q '[:find ?e
               :where [?e]] db)
@@ -34,26 +34,42 @@
        (sort)
        (reverse)))
 
+(defn get-latest-by-status [db status]
+  (->> (d/q '[:find ?e
+              :in $ ?status
+              :where [?e :status ?status]]
+            db status)
+       (map (fn [[e]] (d/entity db e)))
+       (group-by minute)
+       (sort)
+       (reverse)))
+
+(defn to-class [status]
+  (if (= status :error) "danger" "success"))
+
 (rum/defc response < rum/static [[at entries]]
-  [:div
-   (.calendar (js/moment at))
-   [:ul
+  [:div {:class "panel panel-default"}
+   [:div {:class "panel-heading"}
+    (.calendar (js/moment at))]
+   [:ul {:class "list-group"}
     (for [entry entries]
-      [:li {:class (name (:status entry))}
-       [:span
-        (name (:type entry)) " response: "
-        (name (:status entry))]])]])
+      [:li {:class (str "list-group-item list-group-item-" (to-class (:status entry)))}
+       [:span (name (:type entry))]])]])
 
 (rum/defc body < rum/static [db]
   [:div
    [:h1 "In the last 10 minutes"]
-   (map response (take 10 (get-entries db)))])
+   (map response (take 10 (get-entries db)))
+   [:h1 "Last errors"]
+   (map response (take 10 (get-latest-by-status db :error)))])
+
 
 (defn render-page
   ([] (render-page @conn))
-  ([db] (rum/mount (body db) (.-body js/document))))
+  ([db]
+   (rum/mount (body db) (.getElementById js/document "container"))))
 
-(def data-ch (ws-ch (str "ws://" (.. js/window -location -hostname) ":8081")))
+(defonce data-ch (ws-ch (str "ws://" (.. js/window -location -hostname) ":8081")))
 
 (d/listen!
  conn :render

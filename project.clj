@@ -6,6 +6,7 @@
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [datascript "0.13.3"]
                  [figwheel "0.5.0-2"]
+                 [figwheel-sidecar "0.5.0-2"]
                  [rum "0.6.0"]
                  [jarohen/chord "0.6.0"]
                  [doo "0.1.5"]

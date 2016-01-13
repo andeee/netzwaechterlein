@@ -12,12 +12,12 @@
                  [doo "0.1.5"]
                  [cljsjs/moment "2.10.6-0"]]
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
-  :npm {:dependencies [[source-map-support "0.3.2"]
-                       [request "^2.5.5"]
-                       [express "4.13.3"]
-                       [serve-static "1.10.0"]
-                       [ws "0.8.0"]
-                       [sqlite3 "3.1.0"]]}
+  :npm {:dependencies [[source-map-support ">=0.3.2"]
+                       [request ">=2.5.5"]
+                       [express ">=4.13.3"]
+                       [serve-static ">=1.10.0"]
+                       [ws ">=0.8.0"]
+                       [sqlite3 ">=3.1.0"]]}
   :clean-targets ^{:protect false}
   ["resources/public/js/out"
    "resources/public/js/client.js"

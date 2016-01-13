@@ -16,7 +16,12 @@
     (async done
       (go
         (sensor-fn address sensor-chan)
-        (is (= expected (<! sensor-chan)))
+        (let [result (<! sensor-chan)]
+          (is (= (dissoc expected :message)
+                 (dissoc result :message)))
+          (when (:message expected)
+            (is (= 0 (.indexOf (:message result)
+                               (:message expected))))))
         (done)))))
 
 (deftest ping-ok
@@ -27,7 +32,7 @@
 (deftest ping-not-ok
   (test-sensor ping-host
                "10.10.10.10.10"
-               (not-ok :ping "Error: getaddrinfo ENOTFOUND 10.10.10.10.10 10.10.10.10.10:80")))
+               (not-ok :ping "Error: getaddrinfo ENOTFOUND 10.10.10.10.10")))
 
 (deftest lookup-ok
   (test-sensor dns-lookup

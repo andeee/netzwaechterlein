@@ -27,7 +27,7 @@
 (deftest ping-not-ok
   (test-sensor ping-host
                "10.10.10.10.10"
-               (not-ok :ping "Error: Invalid IP address '10.10.10.10.10'")))
+               (not-ok :ping "Error: getaddrinfo ENOTFOUND 10.10.10.10.10 10.10.10.10.10:80")))
 
 (deftest lookup-ok
   (test-sensor dns-lookup
@@ -37,4 +37,4 @@
 (deftest lookup-not-ok
   (test-sensor dns-lookup
                "www.www.www"
-               (not-ok :dns "Error: queryA ENOTFOUND")))
+               (not-ok :dns "Error: queryA ENOTFOUND www.www.www")))

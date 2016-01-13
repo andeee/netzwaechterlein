@@ -1,12 +1,11 @@
 language: clojure
-sudo: true
 env:
   matrix:
-    - TRAVIS_NODE_VERSION="0.10"
     - TRAVIS_NODE_VERSION="0.12"
     - TRAVIS_NODE_VERSION="2"
     - TRAVIS_NODE_VERSION="4"
+    - TRAVIS_NODE_VERSION="5"
 install:
   - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
-  - sudo -E LEIN_ROOT=true lein deps
-script: sudo -E LEIN_ROOT=true lein do clean, doo node backend.test once, cljsbuild once backend frontend
+  - lein deps
+script: lein do clean, doo node backend.test once, cljsbuild once backend frontend

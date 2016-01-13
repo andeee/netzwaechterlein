@@ -13,7 +13,7 @@
                  [cljsjs/moment "2.10.6-0"]]
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
   :npm {:dependencies [[source-map-support "0.3.2"]
-                       [net-ping "1.1.11"]
+                       [request "^2.5.5"]
                        [express "4.13.3"]
                        [serve-static "1.10.0"]
                        [ws "0.8.0"]
@@ -27,7 +27,7 @@
   :plugins [[lein-npm "0.6.1"]
             [lein-figwheel "0.5.0-2"]
             [lein-cljsbuild "1.1.0"]
-            [lein-doo "0.1.5"]]
+            [lein-doo "0.1.6"]]
 
   :figwheel {:open-file-command "emacsclient"
              :nrepl-port 7888
@@ -79,6 +79,6 @@
                  :main "netzwaechterlein.client"
                  :optimizations :whitespace}}]}
   :profiles {:dev {:dependencies [[com.cemerick/piggieback "0.2.1"]
-                                  [org.clojure/tools.nrepl "0.2.10"]
-                                  [cider/cider-nrepl "0.10.0-SNAPSHOT"]
+                                  [org.clojure/tools.nrepl "0.2.12"]
+                                  [cider/cider-nrepl "0.11.0-SNAPSHOT"]
                                   [refactor-nrepl "2.0.0-SNAPSHOT"]]}})

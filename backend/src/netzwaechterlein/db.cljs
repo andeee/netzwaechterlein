@@ -16,7 +16,7 @@
 
 (def sql->clj (map row->clj))
 
-(defn days [days] (* 1000 * 60 * 24 * days))
+(defn days [days] (* 1000 60 24 days))
 
 (defn dump-db [db]
   (let [dump-chan (chan)

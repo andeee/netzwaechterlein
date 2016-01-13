@@ -24,6 +24,7 @@
       (go
         (>! pull-chan :pull-sensors)
         (is (= test-sensor (first (alts! [result-chan (timeout 100)]))))
+        (<! (timeout 200))
         (get-result-from-db db db-result-chan)
         (is (= test-sensor (first (alts! [db-result-chan (timeout 100)]))))
         (done)))))
